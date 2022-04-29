@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-
-	"golang.org/x/exp/slices"
 )
 
 type RECORDS struct {
@@ -18,6 +16,7 @@ type record struct {
 
 func main() {
 	readJson()
+
 }
 
 func readJson() {
@@ -51,8 +50,7 @@ func checkGid(listGid []string) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	// fmt.Println("Successfully Opened users.json")
-	// defer the closing of our jsonFile so that we can parse it later on
+
 	defer jsonFile.Close()
 
 	byteValue, _ := ioutil.ReadAll(jsonFile)
@@ -60,36 +58,47 @@ func checkGid(listGid []string) {
 	var record RECORDS
 	json.Unmarshal(byteValue, &record)
 
-	// listGidNoMatch := []string{}
+	listGidNoMatch := []string{}
 	for i := 0; i < len(record.RECORDS); i++ {
 		s := record.RECORDS[i].Gid
-		// contain
-
-		fmt.Println(s)
-		if slices.Contains(listGid, s) {
-			// fmt.Println(record.RECORDS[i].Gid)
-			continue
+		count := 0
+		fmt.Println("value current", record.RECORDS[i].Gid, i)
+		for j := 0; j < len(listGid); j++ {
+			if listGid[j] == s {
+				count++
+				break
+			}
 		}
-		// else {
-		// 	fmt.Println(record.RECORDS[i].Gid)
-		// 	listGidNoMatch = append(listGidNoMatch, record.RECORDS[i].Gid)
-		// }
-
-		// count := 0
-		// for j := 0; j < len(listGid); j++ {
-		// 	if listGid[j] == s {
-		// 		count++
-		// 		break
-		// 	}
-		// }
-		// if count == 0 {
-		// 	fmt.Println("value not have", record.RECORDS[i].Gid)
-		// 	listGidNoMatch = append(listGidNoMatch, record.RECORDS[i].Gid)
-		// }
+		if count == 0 {
+			fmt.Println("value not have", record.RECORDS[i].Gid, i)
+			listGidNoMatch = append(listGidNoMatch, record.RECORDS[i].Gid)
+		}
 	}
-	fmt.Println(listGid)
-	// writeFile(listGidNoMatch)
+	// fmt.Println(listGidNoMatch)
+	strResult := "'" + listGidNoMatch[0] + "'"
+	for i := 1; i < len(listGidNoMatch); i++ {
+		strResult = strResult + ", '" + listGidNoMatch[i] + "'"
+	}
+
+	writeFile(strResult)
 }
-func RemoveIndex(s []string, index int) []string {
-	return append(s[:index], s[index+1:]...)
+
+func writeFile(strResult string) {
+	f, err := os.Create("test.txt")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	l, err := f.WriteString(strResult)
+	if err != nil {
+		fmt.Println(err)
+		f.Close()
+		return
+	}
+	fmt.Println(l, "bytes written successfully")
+	err = f.Close()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 }
